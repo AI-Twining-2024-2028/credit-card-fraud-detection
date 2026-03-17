@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fraud Detection Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <div>
+                <p class="eyebrow">Fraud Detection App</p>
+                <h1>Review transactions with a trained fraud model.</h1>
+                <p class="hero-copy">
+                    Score a single transaction, upload a CSV for batch review, or call the JSON API from your own tools.
+                </p>
+            </div>
+            <div class="hero-card">
+                <p class="hero-card-title">Dataset snapshot</p>
+                <div class="hero-stat-grid">
+                    <div>
+                        <span>Total rows</span>
+                        <strong>{{ metrics.total_transactions }}</strong>
+                    </div>
+                    <div>
+                        <span>Fraud cases</span>
+                        <strong>{{ metrics.fraud_cases }}</strong>
+                    </div>
+                    <div>
+                        <span>Recall</span>
+                        <strong>{{ metrics.recall }}%</strong>
+                    </div>
+                    <div>
+                        <span>ROC AUC</span>
+                        <strong>{{ metrics.roc_auc }}%</strong>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="metrics-grid">
+            <article class="metric-card">
+                <span>Accuracy</span>
+                <strong>{{ metrics.accuracy }}%</strong>
+            </article>
+            <article class="metric-card">
+                <span>Precision</span>
+                <strong>{{ metrics.precision }}%</strong>
+            </article>
+            <article class="metric-card">
+                <span>True positives</span>
+                <strong>{{ metrics.true_positives }}</strong>
+            </article>
+            <article class="metric-card">
+                <span>False negatives</span>
+                <strong>{{ metrics.false_negatives }}</strong>
+            </article>
+        </section>
+
+        {% if error %}
+        <section class="message error">{{ error }}</section>
+        {% endif %}
+
+        {% if prediction %}
+        <section class="message result">
+            <strong>{{ prediction.label }}</strong>
+            <span>Fraud probability: {{ prediction.fraud_probability }}%</span>
+        </section>
+        {% endif %}
+
+        <section class="content-grid">
+            <section class="panel">
+                <div class="panel-heading">
+                    <h2>Single transaction</h2>
+                    <p>Use the sample values as placeholders if you want a quick test.</p>
+                </div>
+                <form method="post" action="/predict" class="transaction-form">
+                    {% for feature in feature_names %}
+                    <label>
+                        <span>{{ feature }}</span>
+                        <input
+                            type="number"
+                            name="{{ feature }}"
+                            step="any"
+                            placeholder="{{ sample_values[feature] }}"
+                            required
+                        >
+                    </label>
+                    {% endfor %}
+                    <button type="button" onclick="fillSample()">Auto Fill Sample</button>
+                    <button type="submit">Predict transaction</button>
+                </form>
+            </section>
+
+            <section class="panel">
+                <div class="panel-heading">
+                    <h2>Batch CSV upload</h2>
+                    <p>Upload a CSV with these columns: {{ feature_names|join(', ') }}</p>
+                </div>
+                <form method="post" action="/batch-predict" enctype="multipart/form-data" class="upload-form">
+                    <input type="file" name="file" accept=".csv" required>
+                    <button type="submit">Score CSV</button>
+                </form>
+
+                {% if batch_results %}
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Row</th>
+                                <th>Prediction</th>
+                                <th>Fraud probability</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in batch_results[:15] %}
+                            <tr>
+                                <td>{{ row.row_number }}</td>
+                                <td>{{ row.label }}</td>
+                                <td>{{ row.fraud_probability }}%</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if batch_results|length > 15 %}
+                    <p class="table-note">Showing the first 15 rows of {{ batch_results|length }} predictions.</p>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <div class="api-box">
+                    <h3>JSON API</h3>
+                    <pre>{
+  "data": {
+    "Time": 0.0,
+    "V1": -1.359807,
+    "...": "...",
+    "Amount": 149.62
+  }
+}</pre>
+                    <p>POST the payload above to <code>/predict</code>.</p>
+                </div>
+            </section>
+        </section>
+    </main>
+    <script>
+function fillSample(){
+
+document.querySelector('[name="Time"]').value = 0;
+document.querySelector('[name="V1"]').value = -1.359807;
+document.querySelector('[name="V2"]').value = -0.072781;
+document.querySelector('[name="V3"]').value = 2.536347;
+document.querySelector('[name="V4"]').value = 1.378155;
+document.querySelector('[name="V5"]').value = -0.338321;
+document.querySelector('[name="V6"]').value = 0.462388;
+document.querySelector('[name="V7"]').value = 0.239599;
+document.querySelector('[name="V8"]').value = 0.098698;
+document.querySelector('[name="V9"]').value = 0.363787;
+document.querySelector('[name="V10"]').value = 0.090794;
+document.querySelector('[name="V11"]').value = -0.5516;
+document.querySelector('[name="V12"]').value = -0.617801;
+document.querySelector('[name="V13"]').value = -0.99139;
+document.querySelector('[name="V14"]').value = -0.311169;
+document.querySelector('[name="V15"]').value = 1.468177;
+document.querySelector('[name="V16"]').value = -0.470401;
+document.querySelector('[name="V17"]').value = 0.207971;
+document.querySelector('[name="V18"]').value = 0.025791;
+document.querySelector('[name="V19"]').value = 0.403993;
+document.querySelector('[name="V20"]').value = 0.251412;
+document.querySelector('[name="V21"]').value = -0.018307;
+document.querySelector('[name="V22"]').value = 0.277838;
+document.querySelector('[name="V23"]').value = -0.110474;
+document.querySelector('[name="V24"]').value = 0.066928;
+document.querySelector('[name="V25"]').value = 0.128539;
+document.querySelector('[name="V26"]').value = -0.189115;
+document.querySelector('[name="V27"]').value = 0.133558;
+document.querySelector('[name="V28"]').value = -0.021053;
+document.querySelector('[name="Amount"]').value = 149.62;
+
+}
+</script>
+</body>
+</html>
